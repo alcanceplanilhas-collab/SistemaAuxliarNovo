@@ -1,0 +1,415 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1rem;
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  #root {
+    padding: 2rem;
+  }
+}
+
+.App {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+.selection-area {
+  width: 100%;
+  max-width: 600px;
+  padding: 1rem;
+  background: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.almox-select-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: left;
+}
+
+select {
+  padding: 0.5rem;
+  font-size: 1rem;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.device-list-container {
+  width: 100%;
+  max-width: 800px;
+}
+
+.stats {
+  margin-bottom: 1rem;
+  font-size: 1.3rem;
+  color: #000;
+  font-weight: bold;
+  background: #f5f5f5;
+  padding: 1rem;
+  border-radius: 8px;
+  border-left: 4px solid #2196f3;
+}
+
+.device-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.device-card {
+  background: white;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  text-align: left;
+  position: relative;
+  min-height: 120px;
+}
+
+.device-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.device-card.pending {
+  border-left: 5px solid #ff9800;
+  background: #fff8e1;
+}
+
+.device-card.completed {
+  border-left: 5px solid #4caf50;
+  background: #f1f8f4;
+}
+
+.device-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.device-info span {
+  color: #000;
+}
+
+.device-info strong {
+  color: #1976d2;
+  margin-right: 0.3rem;
+}
+
+.empty {
+  color: #d32f2f;
+  font-style: italic;
+  font-weight: bold;
+}
+
+.status-indicator {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+input {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+button {
+  flex: 1;
+  padding: 0.5rem;
+  border: none;
+  border-radius: 4px;
+  background: #2196f3;
+  color: white;
+  cursor: pointer;
+}
+
+button.cancel {
+  background: #f44336;
+}
+
+button.scanner {
+  background: #1B5E20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 45px;
+  transition: background 0.3s, transform 0.2s;
+}
+
+button.scanner:hover {
+  background: #2E7D32;
+  transform: scale(1.05);
+}
+
+button.scanner:active {
+  transform: scale(0.95);
+}
+
+button.scanner svg {
+  width: 20px;
+  height: 20px;
+}
+
+@media (max-width: 600px) {
+  .device-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Login Page Styles */
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #F7B500 0%, #E5A000 100%);
+  padding: 1rem;
+}
+
+.login-card {
+  background: white;
+  border-radius: 12px;
+  padding: 2.5rem;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  max-width: 450px;
+  width: 100%;
+}
+
+.logo-container {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.company-logo {
+  max-width: 200px;
+  max-height: 100px;
+  object-fit: contain;
+}
+
+.login-card h1 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 2rem;
+  font-size: 1.8rem;
+}
+
+.login-card .form-group {
+  margin-bottom: 1.5rem;
+}
+
+.login-card label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #555;
+  font-weight: 500;
+}
+
+.login-card input {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  transition: border-color 0.3s;
+}
+
+.login-card input:focus {
+  outline: none;
+  border-color: #F7B500;
+  box-shadow: 0 0 0 3px rgba(247, 181, 0, 0.1);
+}
+
+.login-button {
+  width: 100%;
+  padding: 0.875rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  background: #000;
+  color: #F7B500;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  margin-top: 1rem;
+}
+
+.login-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  background: #222;
+}
+
+.login-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.error-message {
+  background: #fee;
+  color: #c33;
+  padding: 0.75rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  border-left: 4px solid #c33;
+}
+
+/* App Header Styles */
+.app-header {
+  width: 100%;
+  background: linear-gradient(135deg, #F7B500 0%, #E5A000 100%);
+  color: #333;
+  padding: 1rem 0;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.header-content {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.header-content h1 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #333;
+  font-weight: bold;
+}
+
+@media (min-width: 768px) {
+  .header-content {
+    padding: 0 2rem;
+    gap: 1rem;
+  }
+
+  .header-content h1 {
+    font-size: 1.5rem;
+  }
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+}
+
+@media (min-width: 768px) {
+  .user-info {
+    gap: 1rem;
+    font-size: 1rem;
+  }
+}
+
+.user-name,
+.company-name {
+  background: rgba(0, 0, 0, 0.1);
+  padding: 0.4rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+  color: #333;
+}
+
+@media (min-width: 768px) {
+
+  .user-name,
+  .company-name {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    max-width: none;
+  }
+}
+
+.logout-button {
+  background: rgba(0, 0, 0, 0.1);
+  color: #333;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.8rem;
+  transition: background 0.3s;
+}
+
+@media (min-width: 768px) {
+  .logout-button {
+    padding: 0.5rem 1.5rem;
+    font-size: 1rem;
+  }
+}
+
+.logout-button:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.loading-screen {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  font-size: 1.5rem;
+  color: #F7B500;
+}
+
+@media (max-width: 600px) {
+  .header-content {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .user-info {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .user-name,
+  .company-name {
+    flex: 1;
+    min-width: 0;
+  }
+}
