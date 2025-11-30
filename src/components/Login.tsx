@@ -54,7 +54,7 @@ export function Login({ onLoginSuccess }: LoginProps) {
 
         try {
             // Step 1: Validate email and password
-            const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+            const { error: authError } = await supabase.auth.signInWithPassword({
                 email,
                 password
             })
