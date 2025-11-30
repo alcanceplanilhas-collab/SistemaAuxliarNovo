@@ -14,6 +14,7 @@ export function DeviceList({ almoxId }: DeviceListProps) {
     const [editForm, setEditForm] = useState({ serial: '', lacre: '' })
     const [scannerActive, setScannerActive] = useState(false)
     const [scannerTarget, setScannerTarget] = useState<'serial' | 'lacre' | null>(null)
+    const [almoxDescription, setAlmoxDescription] = useState<string | null>(null)
 
     // Refs for focus management
     const serialInputRef = useRef<HTMLInputElement>(null)
@@ -46,6 +47,17 @@ export function DeviceList({ almoxId }: DeviceListProps) {
             })
 
             setDevices(sorted)
+
+            // Fetch Almox description
+            const { data: almoxData } = await supabase
+                .from('tbl_almox')
+                .select('descricao')
+                .eq('id', id)
+                .single()
+
+            if (almoxData) {
+                setAlmoxDescription(almoxData.descricao)
+            }
         } catch (error) {
             console.error('Error fetching devices:', error)
         } finally {
@@ -72,8 +84,30 @@ export function DeviceList({ almoxId }: DeviceListProps) {
         setScannerTarget(null)
     }
 
-    const handleScanSuccess = (decodedText: string) => {
+    const checkDuplicate = async (text: string, type: 'serial' | 'lacre') => {
+        // Check in current list first
+        const existsInList = devices.some(d => d[type] === text && d.id !== editingId)
+        if (existsInList) return true
+
+        // Check in DB globally
+        const { data } = await supabase
+            .from('tbl_device')
+            .select('id')
+            .eq(type, text)
+            .neq('id', editingId!) // Exclude current
+            .maybeSingle()
+
+        return !!data
+    }
+
+    const handleScanSuccess = async (decodedText: string) => {
         if (scannerTarget) {
+            const isDuplicate = await checkDuplicate(decodedText, scannerTarget)
+            if (isDuplicate) {
+                alert(`Este ${scannerTarget === 'serial' ? 'Serial' : 'Lacre'} já existe no sistema!`)
+                return
+            }
+
             setEditForm(prev => ({
                 ...prev,
                 [scannerTarget]: decodedText
@@ -204,6 +238,19 @@ export function DeviceList({ almoxId }: DeviceListProps) {
                                         <span><strong>ID:</strong> {device.id}</span>
                                         <span><strong>Serial:</strong> {device.serial || <span className="empty">Vazio</span>}</span>
                                         <span><strong>Lacre:</strong> {device.lacre || <span className="empty">Vazio</span>}</span>
+                                        {almoxDescription && (
+                                            <div className="product-description" style={{
+                                                marginTop: '8px',
+                                                fontSize: '0.85em',
+                                                color: '#666',
+                                                borderTop: '1px solid #eee',
+                                                paddingTop: '4px',
+                                                wordWrap: 'break-word',
+                                                overflowWrap: 'break-word'
+                                            }}>
+                                                {almoxDescription}
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="status-indicator">
                                         {(!device.serial || !device.lacre) ? '⚠️ Pendente' : '✅ OK'}
