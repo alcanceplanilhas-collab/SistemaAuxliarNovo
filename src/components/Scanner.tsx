@@ -1,17 +1,17 @@
 import React, { useEffect, useRef } from 'react';
 
 interface ScannerProps {
-    onScanSuccess: (decodedText: string, decodedResult: any) => void;
-    onScanError?: (error: any) => void;
-    onClose?: () => void;
+  onScanSuccess: (decodedText: string, decodedResult: any) => void;
+  onScanError?: (error: any) => void;
+  onClose?: () => void;
 }
 
-export const Scanner: React.FC<ScannerProps> = ({ onScanSuccess, onScanError, onClose }) => {
-    const iframeRef = useRef<HTMLIFrameElement>(null);
+export const Scanner: React.FC<ScannerProps> = ({ onScanSuccess, onClose }) => {
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
-    // O código HTML EXATO que você validou, encapsulado para rodar isolado
-    // Adicionamos apenas estilos para ficar bonito dentro do card
-    const scannerHtml = `
+  // O código HTML EXATO que você validou, encapsulado para rodar isolado
+  // Adicionamos apenas estilos para ficar bonito dentro do card
+  const scannerHtml = `
     <!DOCTYPE html>
     <html lang="pt-br">
     <head>
@@ -153,57 +153,57 @@ export const Scanner: React.FC<ScannerProps> = ({ onScanSuccess, onScanError, on
     </html>
   `;
 
-    useEffect(() => {
-        // Ouvinte de mensagens vindas do Iframe
-        const handleMessage = (event: MessageEvent) => {
-            if (event.data && event.data.type === 'SCAN_SUCCESS') {
-                onScanSuccess(event.data.text, event.data.result);
-            }
-        };
+  useEffect(() => {
+    // Ouvinte de mensagens vindas do Iframe
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data && event.data.type === 'SCAN_SUCCESS') {
+        onScanSuccess(event.data.text, event.data.result);
+      }
+    };
 
-        window.addEventListener('message', handleMessage);
-        return () => window.removeEventListener('message', handleMessage);
-    }, [onScanSuccess]);
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [onScanSuccess]);
 
-    return (
-        <div className="w-full flex justify-center relative">
-            <iframe
-                ref={iframeRef}
-                srcDoc={scannerHtml}
-                title="Scanner Frame"
-                style={{
-                    width: '100%',
-                    height: '400px',
-                    border: 'none',
-                    overflow: 'hidden',
-                    borderRadius: '8px'
-                }}
-                // Permissões críticas para funcionar
-                allow="camera *; microphone *"
-            />
-            {onClose && (
-                <button
-                    onClick={onClose}
-                    style={{
-                        position: 'absolute',
-                        top: '10px',
-                        right: '10px',
-                        background: '#ef4444',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '50%',
-                        width: '30px',
-                        height: '30px',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontWeight: 'bold'
-                    }}
-                >
-                    X
-                </button>
-            )}
-        </div>
-    );
+  return (
+    <div className="w-full flex justify-center relative">
+      <iframe
+        ref={iframeRef}
+        srcDoc={scannerHtml}
+        title="Scanner Frame"
+        style={{
+          width: '100%',
+          height: '400px',
+          border: 'none',
+          overflow: 'hidden',
+          borderRadius: '8px'
+        }}
+        // Permissões críticas para funcionar
+        allow="camera *; microphone *"
+      />
+      {onClose && (
+        <button
+          onClick={onClose}
+          style={{
+            position: 'absolute',
+            top: '10px',
+            right: '10px',
+            background: '#ef4444',
+            color: 'white',
+            border: 'none',
+            borderRadius: '50%',
+            width: '30px',
+            height: '30px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontWeight: 'bold'
+          }}
+        >
+          X
+        </button>
+      )}
+    </div>
+  );
 };
