@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
-import { Html5Qrcode } from 'html5-qrcode'
 import { supabase } from '../supabase'
+import { Scanner } from './Scanner'
 import type { TblDevice } from '../types/supabase'
 
 interface DeviceListProps {
@@ -17,7 +17,6 @@ export function DeviceList({ almoxId }: DeviceListProps) {
 
     // Refs for focus management
     const serialInputRef = useRef<HTMLInputElement>(null)
-    const scannerRef = useRef<Html5Qrcode | null>(null)
 
     useEffect(() => {
         if (almoxId) {
@@ -63,49 +62,24 @@ export function DeviceList({ almoxId }: DeviceListProps) {
         setTimeout(() => serialInputRef.current?.focus(), 50)
     }
 
-    const startScanner = async (target: 'serial' | 'lacre') => {
+    const startScanner = (target: 'serial' | 'lacre') => {
         setScannerTarget(target)
         setScannerActive(true)
-
-        try {
-            const html5QrCode = new Html5Qrcode('scanner-region')
-            scannerRef.current = html5QrCode
-
-            await html5QrCode.start(
-                { facingMode: 'environment' },
-                {
-                    fps: 10,
-                    qrbox: { width: 250, height: 250 }
-                },
-                (decodedText) => {
-                    setEditForm(prev => ({
-                        ...prev,
-                        [target]: decodedText
-                    }))
-                    stopScanner()
-                },
-                () => {
-                    // Error callback (can be ignored for continuous scanning)
-                }
-            )
-        } catch (err) {
-            console.error('Error starting scanner:', err)
-            alert('Erro ao iniciar scanner. Verifique as permissões da câmera.')
-            setScannerActive(false)
-        }
     }
 
-    const stopScanner = async () => {
-        if (scannerRef.current) {
-            try {
-                await scannerRef.current.stop()
-                scannerRef.current.clear()
-            } catch (err) {
-                console.error('Error stopping scanner:', err)
-            }
-        }
+    const stopScanner = () => {
         setScannerActive(false)
         setScannerTarget(null)
+    }
+
+    const handleScanSuccess = (decodedText: string) => {
+        if (scannerTarget) {
+            setEditForm(prev => ({
+                ...prev,
+                [scannerTarget]: decodedText
+            }))
+            stopScanner()
+        }
     }
 
     const handleSave = async (id: number) => {
@@ -169,8 +143,10 @@ export function DeviceList({ almoxId }: DeviceListProps) {
                                     {scannerActive ? (
                                         <div>
                                             <p>Escaneando {scannerTarget === 'serial' ? 'Serial' : 'Lacre'}...</p>
-                                            <div id="scanner-region" style={{ width: '100%' }}></div>
-                                            <button onClick={stopScanner} className="cancel">Cancelar Scanner</button>
+                                            <Scanner
+                                                onScanSuccess={handleScanSuccess}
+                                                onClose={stopScanner}
+                                            />
                                         </div>
                                     ) : (
                                         <>
