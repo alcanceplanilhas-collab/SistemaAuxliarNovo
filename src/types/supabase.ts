@@ -24,6 +24,7 @@ export interface TblUsuario {
     nome: string
     uuid: string
     status_operacional: number
+    otp: string | null
     created_at?: string
 }
 
