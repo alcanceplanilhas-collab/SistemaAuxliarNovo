@@ -162,6 +162,7 @@ export function Login({ onLoginSuccess }: LoginProps) {
                                 onChange={(option) => setSelectedCompany(option?.company || null)}
                                 placeholder="Selecione a empresa"
                                 isSearchable
+                                autoComplete="off"
                                 styles={{
                                     control: (base) => ({
                                         ...base,
@@ -195,6 +196,7 @@ export function Login({ onLoginSuccess }: LoginProps) {
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="seu@email.com"
                                 required
+                                autoComplete="off"
                             />
                         </div>
 
@@ -207,6 +209,7 @@ export function Login({ onLoginSuccess }: LoginProps) {
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="••••••••"
                                     required
+                                    autoComplete="new-password"
                                     style={{ paddingRight: '45px' }}
                                 />
                                 <button
@@ -248,6 +251,7 @@ export function Login({ onLoginSuccess }: LoginProps) {
                                     placeholder="Digite o código OTP"
                                     required
                                     autoFocus
+                                    autoComplete="off"
                                     style={{ textTransform: 'uppercase', letterSpacing: '2px', paddingRight: '45px' }}
                                 />
                                 <button

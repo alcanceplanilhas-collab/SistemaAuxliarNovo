@@ -118,6 +118,23 @@ export function DeviceList({ almoxId }: DeviceListProps) {
 
     const handleSave = async (id: number) => {
         try {
+            // Validate for duplicates before saving
+            if (editForm.serial) {
+                const isDuplicateSerial = await checkDuplicate(editForm.serial, 'serial')
+                if (isDuplicateSerial) {
+                    alert('Este Serial já existe no sistema!')
+                    return
+                }
+            }
+
+            if (editForm.lacre) {
+                const isDuplicateLacre = await checkDuplicate(editForm.lacre, 'lacre')
+                if (isDuplicateLacre) {
+                    alert('Este Lacre já existe no sistema!')
+                    return
+                }
+            }
+
             const { error } = await supabase
                 .from('tbl_device')
                 .update({
