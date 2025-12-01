@@ -162,7 +162,6 @@ export function Login({ onLoginSuccess }: LoginProps) {
                                 onChange={(option) => setSelectedCompany(option?.company || null)}
                                 placeholder="Selecione a empresa"
                                 isSearchable
-                                autoComplete="off"
                                 styles={{
                                     control: (base) => ({
                                         ...base,
@@ -247,12 +246,12 @@ export function Login({ onLoginSuccess }: LoginProps) {
                                 <input
                                     type={showOtp ? 'text' : 'password'}
                                     value={otp}
-                                    onChange={(e) => setOtp(e.target.value.toUpperCase())}
+                                    onChange={(e) => setOtp(e.target.value)}
                                     placeholder="Digite o código OTP"
                                     required
                                     autoFocus
                                     autoComplete="off"
-                                    style={{ textTransform: 'uppercase', letterSpacing: '2px', paddingRight: '45px' }}
+                                    style={{ letterSpacing: '2px', paddingRight: '45px' }}
                                 />
                                 <button
                                     type="button"
