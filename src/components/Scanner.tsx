@@ -137,17 +137,27 @@ export const Scanner: React.FC<ScannerProps> = ({ onScanSuccess, onClose }) => {
           }
         );
         
+        // Salva que a permissão foi concedida
+        localStorage.setItem("cameraPermissionGranted", "true");
+        
         document.getElementById("status").innerText = "Aponte para o código";
 
       } catch (e) {
         console.error(e);
         document.getElementById("status").innerText = "Erro: " + e;
         document.getElementById("controls").classList.remove("hidden");
+        // Remove a permissão salva em caso de erro
+        localStorage.removeItem("cameraPermissionGranted");
       }
     }
     
-    // Auto-start if desired, but user has a button
-    // iniciar(); 
+    // Auto-start se a permissão já foi concedida anteriormente
+    window.addEventListener("load", () => {
+      const permissionGranted = localStorage.getItem("cameraPermissionGranted");
+      if (permissionGranted === "true") {
+        iniciar();
+      }
+    });
     </script>
     </body>
     </html>
