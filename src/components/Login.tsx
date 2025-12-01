@@ -20,8 +20,8 @@ export function Login({ onLoginSuccess }: LoginProps) {
     const [showPassword, setShowPassword] = useState(false)
     const [showOtp, setShowOtp] = useState(false)
 
-    // Two-step authentication flow
-    const [authStep, setAuthStep] = useState<'credentials' | 'otp'>('credentials')
+    // Three-step authentication flow: credentials -> register-otp OR otp
+    const [authStep, setAuthStep] = useState<'credentials' | 'register-otp' | 'otp'>('credentials')
     const [pendingUser, setPendingUser] = useState<TblUsuario | null>(null)
 
     useEffect(() => {
@@ -74,9 +74,16 @@ export function Login({ onLoginSuccess }: LoginProps) {
                 throw new Error('Usuário não encontrado ou inativo')
             }
 
-            // Store user data and move to OTP step
+            // Store user data and check if OTP exists
             setPendingUser(userData)
-            setAuthStep('otp')
+
+            // If user doesn't have OTP, go to registration screen
+            if (!userData.otp || userData.otp.trim() === '') {
+                setAuthStep('register-otp')
+            } else {
+                // If user has OTP, go to validation screen
+                setAuthStep('otp')
+            }
 
         } catch (error: any) {
             console.error('Login error:', error)
@@ -95,6 +102,47 @@ export function Login({ onLoginSuccess }: LoginProps) {
             }
 
             setError(errorMessage)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    async function handleRegisterOtp(e: React.FormEvent) {
+        e.preventDefault()
+
+        if (!pendingUser || !selectedCompany) {
+            setError('Erro no processo de autenticação')
+            return
+        }
+
+        // Validate OTP format (5 characters)
+        if (otp.length !== 5) {
+            setError('O código OTP deve ter exatamente 5 caracteres')
+            return
+        }
+
+        setLoading(true)
+        setError(null)
+
+        try {
+            // Save OTP to database
+            const { error: updateError } = await supabase
+                .from('tbl_usuario')
+                .update({ otp: otp })
+                .eq('id', pendingUser.id)
+
+            if (updateError) throw updateError
+
+            // Update pending user with new OTP
+            setPendingUser({ ...pendingUser, otp: otp })
+
+            // Complete login
+            await login(email, password, selectedCompany.id)
+            onLoginSuccess()
+
+        } catch (error: any) {
+            console.error('OTP registration error:', error)
+            setError(error.message || 'Erro ao cadastrar código OTP')
         } finally {
             setLoading(false)
         }
@@ -236,6 +284,66 @@ export function Login({ onLoginSuccess }: LoginProps) {
 
                         <button type="submit" disabled={loading} className="login-button">
                             {loading ? 'Validando...' : 'Continuar'}
+                        </button>
+                    </form>
+                ) : authStep === 'register-otp' ? (
+                    <form onSubmit={handleRegisterOtp}>
+                        <div className="form-group">
+                            <label>Cadastre seu Código OTP:</label>
+                            <div style={{ position: 'relative' }}>
+                                <input
+                                    type={showOtp ? 'text' : 'password'}
+                                    value={otp}
+                                    onChange={(e) => setOtp(e.target.value)}
+                                    placeholder="Digite 5 caracteres"
+                                    required
+                                    autoFocus
+                                    autoComplete="off"
+                                    maxLength={5}
+                                    style={{ letterSpacing: '4px', paddingRight: '45px', fontSize: '1.2rem', textAlign: 'center' }}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowOtp(!showOtp)}
+                                    style={{
+                                        position: 'absolute',
+                                        right: '8px',
+                                        top: '50%',
+                                        transform: 'translateY(-50%)',
+                                        background: 'transparent',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        padding: '4px 8px',
+                                        fontSize: '0.85rem',
+                                        color: '#666'
+                                    }}
+                                >
+                                    {showOtp ? '👁️' : '👁️‍🗨️'}
+                                </button>
+                            </div>
+                            <small style={{ color: '#666', fontSize: '0.85rem', marginTop: '0.5rem', display: 'block', lineHeight: '1.4' }}>
+                                ⚠️ <strong>Importante:</strong> Este código será usado para acessar o sistema.<br />
+                                Escolha um código de <strong>4 números e 1 letra no final</strong> (ex: 7392K) que você possa lembrar facilmente.
+                            </small>
+                        </div>
+
+                        {error && <div className="error-message">{error}</div>}
+
+                        <button type="submit" disabled={loading} className="login-button">
+                            {loading ? 'Cadastrando...' : 'Cadastrar e Entrar'}
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={handleBackToCredentials}
+                            style={{
+                                marginTop: '0.5rem',
+                                background: 'transparent',
+                                color: '#666',
+                                border: '1px solid #ddd'
+                            }}
+                        >
+                            Voltar
                         </button>
                     </form>
                 ) : (
