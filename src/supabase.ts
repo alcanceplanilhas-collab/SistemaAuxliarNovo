@@ -54,7 +54,7 @@ if (!isSupabaseConfigured) {
   }
 }
 
-// Exporta o cliente do Supabase (ou null se não configurado)
-export const supabase = isSupabaseConfigured
-  ? createClient(supabaseUrl, supabaseAnonKey)
-  : null;
+// Exporta o cliente do Supabase
+// Fallback para strings vazias para evitar erros de tipo (TS18047), 
+// mas as chamadas falharão se não estiver configurado.
+export const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '');
