@@ -1,20 +1,30 @@
 import { useState } from 'react'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { Login } from './components/Login'
+import { OtpScreen } from './components/OtpScreen'
+import { CompanySelection } from './components/CompanySelection'
 import { AlmoxSelect } from './components/AlmoxSelect'
 import { DeviceList } from './components/DeviceList'
 import './App.css'
 
 function AppContent() {
-  const { user, company, loading, logout } = useAuth()
+  const { user, company, loading, logout, isOtpVerified } = useAuth()
   const [selectedAlmoxId, setSelectedAlmoxId] = useState<number | null>(null)
 
   if (loading) {
     return <div className="loading-screen">Carregando...</div>
   }
 
-  if (!user || !company) {
+  if (!user) {
     return <Login onLoginSuccess={() => { }} />
+  }
+
+  if (!isOtpVerified) {
+    return <OtpScreen />
+  }
+
+  if (!company) {
+    return <CompanySelection />
   }
 
   return (

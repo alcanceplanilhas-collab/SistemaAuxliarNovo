@@ -8,9 +8,11 @@ interface AuthContextType {
     supabaseUser: User | null
     company: TblParametro | null
     loading: boolean
-    login: (email: string, password: string, companyId: number) => Promise<void>
+    isOtpVerified: boolean
+    login: (email: string, password: string) => Promise<void>
     logout: () => Promise<void>
     setCompany: (company: TblParametro) => void
+    verifyOtp: () => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -20,6 +22,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [supabaseUser, setSupabaseUser] = useState<User | null>(null)
     const [company, setCompanyState] = useState<TblParametro | null>(null)
     const [loading, setLoading] = useState(true)
+    const [isOtpVerified, setIsOtpVerified] = useState(false)
 
     useEffect(() => {
         // Check for existing session
@@ -71,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     }
 
-    async function login(email: string, password: string, companyId: number) {
+    async function login(email: string, password: string) {
         try {
             // First check if user exists and is active
             const { data: userData, error: userError } = await supabase
@@ -93,21 +96,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
             if (authError) throw authError
 
-            // Load company data
-            const { data: companyData, error: companyError } = await supabase
-                .from('tbl_parametro')
-                .select('*')
-                .eq('id', companyId)
-                .single()
-
-            if (companyError || !companyData) {
-                throw new Error('Empresa não encontrada')
-            }
-
             setUser(userData)
             setSupabaseUser(authData.user)
-            setCompanyState(companyData)
-            localStorage.setItem('selectedCompany', JSON.stringify(companyData))
+
+            // Clear company state on new login
+            setCompanyState(null)
+            localStorage.removeItem('selectedCompany')
         } catch (error: any) {
             console.error('Login error:', error)
             throw error
@@ -119,6 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null)
         setSupabaseUser(null)
         setCompanyState(null)
+        setIsOtpVerified(false)
         localStorage.removeItem('selectedCompany')
     }
 
@@ -127,8 +122,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('selectedCompany', JSON.stringify(company))
     }
 
+    function verifyOtp() {
+        setIsOtpVerified(true)
+    }
+
     return (
-        <AuthContext.Provider value={{ user, supabaseUser, company, loading, login, logout, setCompany }}>
+        <AuthContext.Provider value={{ user, supabaseUser, company, loading, isOtpVerified, login, logout, setCompany, verifyOtp }}>
             {children}
         </AuthContext.Provider>
     )
