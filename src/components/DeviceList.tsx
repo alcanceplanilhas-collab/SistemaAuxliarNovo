@@ -15,6 +15,9 @@ export function DeviceList({ almoxId }: DeviceListProps) {
     const [scannerActive, setScannerActive] = useState(false)
     const [scannerTarget, setScannerTarget] = useState<'serial' | 'lacre' | null>(null)
     const [almoxDescription, setAlmoxDescription] = useState<string | null>(null)
+    const [searchTerm, setSearchTerm] = useState('')
+    const [searchField, setSearchField] = useState<'serial' | 'lacre'>('serial')
+    const [searchMode, setSearchMode] = useState<'exact' | 'partial'>('partial')
 
     // Refs for focus management
     const serialInputRef = useRef<HTMLInputElement>(null)
@@ -102,7 +105,13 @@ export function DeviceList({ almoxId }: DeviceListProps) {
 
     const handleScanSuccess = async (decodedText: string) => {
         if (scannerTarget) {
-            const isDuplicate = await checkDuplicate(decodedText, scannerTarget)
+            let finalText = decodedText
+            // Remove leading zeros for lacre
+            if (scannerTarget === 'lacre') {
+                finalText = finalText.replace(/^0+/, '')
+            }
+
+            const isDuplicate = await checkDuplicate(finalText, scannerTarget)
             if (isDuplicate) {
                 alert(`Este ${scannerTarget === 'serial' ? 'Serial' : 'Lacre'} já existe no sistema!`)
                 return
@@ -110,7 +119,7 @@ export function DeviceList({ almoxId }: DeviceListProps) {
 
             setEditForm(prev => ({
                 ...prev,
-                [scannerTarget]: decodedText
+                [scannerTarget]: finalText
             }))
             stopScanner()
         }
@@ -166,6 +175,51 @@ export function DeviceList({ almoxId }: DeviceListProps) {
         }
     }
 
+    const performSearch = async () => {
+        if (!almoxId) return
+        setLoading(true)
+        try {
+            let query = supabase
+                .from('tbl_device')
+                .select('*')
+                .eq('iddevice', almoxId)
+
+            if (searchTerm) {
+                if (searchField === 'lacre') {
+                    // Lacre: always exact match
+                    query = query.eq('lacre', searchTerm)
+                } else {
+                    // Serial: exact or partial
+                    if (searchMode === 'exact') {
+                        query = query.eq('serial', searchTerm)
+                    } else {
+                        query = query.ilike('serial', `%${searchTerm}%`)
+                    }
+                }
+            }
+
+            const { data, error } = await query
+
+            if (error) throw error
+
+            // Sort: Empty serial/lacre first
+            const sorted = (data || []).sort((a, b) => {
+                const aEmpty = !a.serial || !a.lacre
+                const bEmpty = !b.serial || !b.lacre
+                if (aEmpty && !bEmpty) return -1
+                if (!aEmpty && bEmpty) return 1
+                return 0
+            })
+
+            setDevices(sorted)
+        } catch (error) {
+            console.error('Error searching devices:', error)
+            alert('Erro ao buscar dispositivos')
+        } finally {
+            setLoading(false)
+        }
+    }
+
     const filledCount = devices.filter(d => d.serial && d.lacre).length
     const totalCount = devices.length
 
@@ -173,6 +227,59 @@ export function DeviceList({ almoxId }: DeviceListProps) {
 
     return (
         <div className="device-list-container">
+            <div className="search-section" style={{ marginBottom: '1rem', padding: '1rem', background: '#f3f4f6', borderRadius: '0.5rem' }}>
+                <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                    <select
+                        value={searchField}
+                        onChange={(e) => {
+                            setSearchField(e.target.value as 'serial' | 'lacre')
+                            // Reset to exact mode when switching to lacre
+                            if (e.target.value === 'lacre') {
+                                setSearchMode('exact')
+                            }
+                        }}
+                        style={{ padding: '0.5rem', borderRadius: '0.25rem', border: '1px solid #d1d5db', minWidth: '100px' }}
+                    >
+                        <option value="serial">Serial</option>
+                        <option value="lacre">Lacre</option>
+                    </select>
+                    <input
+                        type="text"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        placeholder={`Buscar por ${searchField === 'serial' ? 'Serial' : 'Lacre'}...`}
+                        style={{ flex: 1, padding: '0.5rem', borderRadius: '0.25rem', border: '1px solid #d1d5db' }}
+                    />
+                    {searchField === 'serial' && (
+                        <select
+                            value={searchMode}
+                            onChange={(e) => setSearchMode(e.target.value as 'exact' | 'partial')}
+                            style={{ padding: '0.5rem', borderRadius: '0.25rem', border: '1px solid #d1d5db' }}
+                        >
+                            <option value="partial">Parcial</option>
+                            <option value="exact">Exato</option>
+                        </select>
+                    )}
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button
+                        onClick={performSearch}
+                        style={{ flex: 1, background: '#3b82f6', color: 'white', padding: '0.5rem', borderRadius: '0.25rem', border: 'none', cursor: 'pointer' }}
+                    >
+                        Buscar
+                    </button>
+                    <button
+                        onClick={() => {
+                            setSearchTerm('')
+                            fetchDevices(almoxId)
+                        }}
+                        style={{ flex: 1, background: '#9ca3af', color: 'white', padding: '0.5rem', borderRadius: '0.25rem', border: 'none', cursor: 'pointer' }}
+                    >
+                        Limpar
+                    </button>
+                </div>
+            </div>
+
             <div className="stats">
                 <strong>Progresso: {filledCount} / {totalCount}</strong>
             </div>
