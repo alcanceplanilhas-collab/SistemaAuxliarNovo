@@ -12,24 +12,37 @@ export async function listPDFs(empresaId: number): Promise<PDFDocument[]> {
     try {
         const { data, error } = await supabase
             .from('tbl_pdf_documents')
-            .select(`
-                *,
-                uploaded_by_user:tbl_usuario!tbl_pdf_documents_uploaded_by_fkey(name),
-                signed_by_user:tbl_usuario!tbl_pdf_documents_signed_by_fkey(name)
-            `)
+            .select('*')
             .eq('empresa_id', empresaId)
             .order('upload_date', { ascending: false })
 
         if (error) throw error
 
-        // Mapear os dados para incluir os nomes dos usuários
-        const pdfs = (data || []).map((pdf: any) => ({
-            ...pdf,
-            uploaded_by_name: pdf.uploaded_by_user?.name,
-            signed_by_name: pdf.signed_by_user?.name
-        }))
+        // Buscar nomes dos usuários se houver PDFs
+        if (data && data.length > 0) {
+            const userIds = new Set<number>()
+            data.forEach(pdf => {
+                if (pdf.uploaded_by) userIds.add(pdf.uploaded_by)
+                if (pdf.signed_by) userIds.add(pdf.signed_by)
+            })
 
-        return pdfs
+            // Buscar nomes dos usuários (usando 'nome' que é o campo correto)
+            const { data: users } = await supabase
+                .from('tbl_usuario')
+                .select('id, nome')
+                .in('id', Array.from(userIds))
+
+            const userMap = new Map(users?.map(u => [u.id, u.nome]) || [])
+
+            // Mapear nomes aos PDFs
+            return data.map((pdf: any) => ({
+                ...pdf,
+                uploaded_by_name: pdf.uploaded_by ? userMap.get(pdf.uploaded_by) : undefined,
+                signed_by_name: pdf.signed_by ? userMap.get(pdf.signed_by) : undefined
+            }))
+        }
+
+        return data || []
     } catch (error) {
         console.error('Error listing PDFs:', error)
         throw error
