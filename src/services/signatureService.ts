@@ -150,8 +150,8 @@ export async function createSignedPDF(
         // Gerar o PDF modificado
         const modifiedPdfBytes = await pdfDoc.save()
 
-        // Converter para Blob (fix para TypeScript)
-        return new Blob([modifiedPdfBytes.buffer], { type: 'application/pdf' })
+        // Converter para Blob (TypeScript workaround)
+        return new Blob([modifiedPdfBytes as any], { type: 'application/pdf' })
     } catch (error) {
         console.error('Error creating signed PDF:', error)
         throw new Error('Falha ao incorporar assinatura no PDF: ' + error)
