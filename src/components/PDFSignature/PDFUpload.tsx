@@ -1,4 +1,5 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useMemo } from 'react'
+import { getMaxFileSize, validateFileSize, isMobileDevice } from '../../utils/deviceDetection'
 import './PDFSignature.css'
 
 interface PDFUploadProps {
@@ -11,18 +12,41 @@ export function PDFUpload({ onUpload, onClose }: PDFUploadProps) {
     const [uploading, setUploading] = useState(false)
     const [progress, setProgress] = useState(0)
     const [dragOver, setDragOver] = useState(false)
+    const [error, setError] = useState<string>('')
     const fileInputRef = useRef<HTMLInputElement>(null)
 
+    // Obter limite de tamanho baseado no dispositivo
+    const maxFileSize = useMemo(() => getMaxFileSize(), [])
+    const maxFileSizeMB = useMemo(() => (maxFileSize / 1024 / 1024).toFixed(0), [maxFileSize])
+    const isMobile = useMemo(() => isMobileDevice(), [])
+
     const validateFile = (file: File): boolean => {
+        setError('')
+
+        // Validar tipo
         if (file.type !== 'application/pdf') {
-            alert('Apenas arquivos PDF são permitidos.')
+            const errorMsg = '❌ Apenas arquivos PDF são permitidos.'
+            setError(errorMsg)
+            alert(errorMsg)
             return false
         }
 
-        const maxSize = 10 * 1024 * 1024 // 10MB
-        if (file.size > maxSize) {
-            alert('O arquivo deve ter no máximo 10MB.')
+        // Validar tamanho baseado no dispositivo
+        const validation = validateFileSize(file.size)
+        if (!validation.valid) {
+            const errorMsg = validation.message || `O arquivo é muito grande para este dispositivo. Tamanho máximo: ${maxFileSizeMB}MB`
+            setError(errorMsg)
+            alert(errorMsg)
             return false
+        }
+
+        // Warning para arquivos grandes em mobile
+        if (isMobile && file.size > 5 * 1024 * 1024) {
+            const confirmMsg = `⚠️ Este arquivo tem ${(file.size / 1024 / 1024).toFixed(1)}MB. ` +
+                `O upload pode demorar em conexões lentas. Continuar?`
+            if (!confirm(confirmMsg)) {
+                return false
+            }
         }
 
         return true
@@ -65,9 +89,10 @@ export function PDFUpload({ onUpload, onClose }: PDFUploadProps) {
 
         setUploading(true)
         setProgress(0)
+        setError('')
 
         try {
-            // Simular progresso
+            // Simular progresso de forma mais realista
             const progressInterval = setInterval(() => {
                 setProgress(p => {
                     if (p >= 90) {
@@ -76,8 +101,9 @@ export function PDFUpload({ onUpload, onClose }: PDFUploadProps) {
                     }
                     return p + 10
                 })
-            }, 200)
+            }, 300)
 
+            // Upload do arquivo
             await onUpload(selectedFile)
 
             clearInterval(progressInterval)
@@ -85,11 +111,16 @@ export function PDFUpload({ onUpload, onClose }: PDFUploadProps) {
 
             // Fechar após um breve delay
             setTimeout(() => {
+                // Limpar referências para ajudar garbage collection
+                setSelectedFile(null)
                 onClose()
             }, 500)
         } catch (error) {
             console.error('Upload error:', error)
-            alert('Erro ao fazer upload do PDF. Tente novamente.')
+            const errorMsg = '❌ Erro ao fazer upload do PDF. ' +
+                (isMobile ? 'Verifique sua conexão e tente novamente.' : 'Tente novamente.')
+            setError(errorMsg)
+            alert(errorMsg)
         } finally {
             setUploading(false)
         }
@@ -115,9 +146,21 @@ export function PDFUpload({ onUpload, onClose }: PDFUploadProps) {
                         <div className="upload-subtext">
                             ou clique para selecionar
                         </div>
-                        <div className="upload-subtext" style={{ marginTop: '0.5rem' }}>
-                            (Máximo: 10MB)
+                        <div className="upload-subtext" style={{ marginTop: '0.5rem', color: isMobile ? '#ff9800' : '#666' }}>
+                            {isMobile ? `📱 Máximo: ${maxFileSizeMB}MB (Mobile)` : `💻 Máximo: ${maxFileSizeMB}MB`}
                         </div>
+                        {error && (
+                            <div style={{
+                                marginTop: '1rem',
+                                padding: '0.75rem',
+                                background: '#ffebee',
+                                color: '#c62828',
+                                borderRadius: '4px',
+                                fontSize: '0.9rem'
+                            }}>
+                                {error}
+                            </div>
+                        )}
                         <input
                             ref={fileInputRef}
                             type="file"
@@ -154,8 +197,13 @@ export function PDFUpload({ onUpload, onClose }: PDFUploadProps) {
                                     ></div>
                                 </div>
                                 <div className="progress-text">
-                                    Enviando... {progress}%
+                                    {isMobile ? '📱 ' : '💻 '}Enviando... {progress}%
                                 </div>
+                                {isMobile && progress < 50 && (
+                                    <div style={{ fontSize: '0.8rem', color: '#666', marginTop: '0.5rem' }}>
+                                        Otimizado para mobile
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>

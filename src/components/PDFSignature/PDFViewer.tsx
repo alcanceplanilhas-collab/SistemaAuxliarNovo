@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Document, Page, pdfjs } from 'react-pdf'
+import { getOptimizedPDFSettings } from '../../utils/deviceDetection'
 import './PDFSignature.css'
 
 // Configurar worker do PDF.js com versão específica que funciona
@@ -17,42 +18,66 @@ export function PDFViewer({ pdfUrl, fileName, onClose, onSign, isSigned }: PDFVi
     const [numPages, setNumPages] = useState<number>(0)
     const [pageNumber, setPageNumber] = useState<number>(1)
     const [scale, setScale] = useState<number>(1.0)
+    const [pageLoading, setPageLoading] = useState<boolean>(false)
+
+    // Obter configurações otimizadas para o dispositivo
+    const pdfSettings = useMemo(() => getOptimizedPDFSettings(), [])
 
     function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
         setNumPages(numPages)
         setPageNumber(1)
+        console.log(`📄 PDF loaded: ${numPages} pages`)
     }
 
     function goToPrevPage() {
-        setPageNumber(page => Math.max(1, page - 1))
+        setPageNumber(page => {
+            const newPage = Math.max(1, page - 1)
+            setPageLoading(true)
+            return newPage
+        })
     }
 
     function goToNextPage() {
-        setPageNumber(page => Math.min(numPages, page + 1))
+        setPageNumber(page => {
+            const newPage = Math.min(numPages, page + 1)
+            setPageLoading(true)
+            return newPage
+        })
     }
 
     function zoomIn() {
-        setScale(s => Math.min(2.0, s + 0.2))
+        setScale(s => Math.min(pdfSettings.maxScale, s + 0.2))
     }
 
     function zoomOut() {
-        setScale(s => Math.max(0.5, s - 0.2))
+        setScale(s => Math.max(pdfSettings.minScale, s - 0.2))
     }
 
     useEffect(() => {
-        // Ajustar escala inicial para mobile
+        // Ajustar escala inicial baseado nas configurações otimizadas
+        setScale(pdfSettings.initialScale)
+
         const updateScale = () => {
             if (window.innerWidth < 768) {
-                setScale(0.8)
+                setScale(pdfSettings.initialScale)
             } else {
                 setScale(1.0)
             }
         }
 
-        updateScale()
         window.addEventListener('resize', updateScale)
         return () => window.removeEventListener('resize', updateScale)
-    }, [])
+    }, [pdfSettings.initialScale])
+
+    // Liberar memória ao mudar de página
+    useEffect(() => {
+        // Força garbage collection ao trocar de página
+        const timer = setTimeout(() => {
+            setPageLoading(false)
+        }, 300)
+
+        return () => clearTimeout(timer)
+    }, [pageNumber])
 
     return (
         <div className="pdf-viewer">
@@ -91,6 +116,9 @@ export function PDFViewer({ pdfUrl, fileName, onClose, onSign, isSigned }: PDFVi
                         <div className="loading-spinner">
                             <div className="spinner"></div>
                             <div>Carregando PDF...</div>
+                            <div style={{ fontSize: '0.8rem', marginTop: '0.5rem', color: '#666' }}>
+                                Otimizando para seu dispositivo...
+                            </div>
                         </div>
                     }
                     error={
@@ -99,12 +127,18 @@ export function PDFViewer({ pdfUrl, fileName, onClose, onSign, isSigned }: PDFVi
                         </div>
                     }
                 >
+                    {pageLoading && (
+                        <div className="loading-spinner" style={{ position: 'absolute', zIndex: 10 }}>
+                            <div className="spinner"></div>
+                        </div>
+                    )}
                     <Page
                         pageNumber={pageNumber}
-                        scale={scale}
+                        scale={scale * pdfSettings.renderQuality}
                         className="pdf-page-container"
-                        renderTextLayer={true}
-                        renderAnnotationLayer={true}
+                        renderTextLayer={pdfSettings.renderTextLayer}
+                        renderAnnotationLayer={pdfSettings.renderAnnotationLayer}
+                        loading=""
                     />
                 </Document>
             </div>
@@ -133,7 +167,7 @@ export function PDFViewer({ pdfUrl, fileName, onClose, onSign, isSigned }: PDFVi
                 <button
                     className="pdf-control-button"
                     onClick={zoomOut}
-                    disabled={scale <= 0.5}
+                    disabled={scale <= pdfSettings.minScale}
                 >
                     🔍−
                 </button>
@@ -145,7 +179,7 @@ export function PDFViewer({ pdfUrl, fileName, onClose, onSign, isSigned }: PDFVi
                 <button
                     className="pdf-control-button"
                     onClick={zoomIn}
-                    disabled={scale >= 2.0}
+                    disabled={scale >= pdfSettings.maxScale}
                 >
                     🔍+
                 </button>
