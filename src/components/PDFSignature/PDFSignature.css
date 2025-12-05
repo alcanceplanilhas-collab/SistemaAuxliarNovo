@@ -292,6 +292,12 @@
   touch-action: none;
   max-width: 100%;
   max-height: 100%;
+  display: block;
+  margin: 0 auto;
+  width: 600px;
+  /* Largura padrão */
+  height: 300px;
+  /* Altura padrão */
 }
 
 .signature-hint {
@@ -474,8 +480,13 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Mobile Responsive */
@@ -504,6 +515,14 @@
 
   .signature-canvas-container {
     padding: 1rem;
+  }
+
+  .signature-canvas {
+    width: calc(100vw - 3rem);
+    /* Ajusta para largura da tela mobile */
+    height: 250px;
+    /* Altura menor para mobile */
+    max-width: 600px;
   }
 
   .signature-actions {
