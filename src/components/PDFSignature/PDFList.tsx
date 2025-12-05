@@ -135,11 +135,19 @@ export function PDFList({ pdfs, loading, onSelectPDF, onUploadClick }: PDFListPr
                             </div>
                             <div className="pdf-card-info">
                                 <strong>Upload:</strong> {formatDate(pdf.upload_date)}
+                                {pdf.uploaded_by_name && ` - ${pdf.uploaded_by_name}`}
                             </div>
                             {pdf.signed && pdf.signature_date && (
-                                <div className="pdf-card-info" style={{ color: '#4caf50' }}>
-                                    <strong>Assinado em:</strong> {formatDate(pdf.signature_date)}
-                                </div>
+                                <>
+                                    <div className="pdf-card-info" style={{ color: '#4caf50' }}>
+                                        <strong>Assinado em:</strong> {formatDate(pdf.signature_date)}
+                                    </div>
+                                    {pdf.signed_by_name && (
+                                        <div className="pdf-card-info" style={{ color: '#4caf50', fontWeight: 600 }}>
+                                            👤 Por: {pdf.signed_by_name}
+                                        </div>
+                                    )}
+                                </>
                             )}
                         </div>
                     ))}

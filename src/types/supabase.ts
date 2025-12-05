@@ -44,10 +44,14 @@ export interface PDFDocument {
     file_size: number
     upload_date: string
     uploaded_by: number
+    uploaded_by_name?: string
     signed: boolean
     signature_url?: string
     signature_date?: string
     signed_by?: number
+    signed_by_name?: string
+    created_at: string
+    updated_at: string
 }
 
 export interface PDFMetadata {

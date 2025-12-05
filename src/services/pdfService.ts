@@ -12,12 +12,24 @@ export async function listPDFs(empresaId: number): Promise<PDFDocument[]> {
     try {
         const { data, error } = await supabase
             .from('tbl_pdf_documents')
-            .select('*')
+            .select(`
+                *,
+                uploaded_by_user:tbl_usuario!tbl_pdf_documents_uploaded_by_fkey(name),
+                signed_by_user:tbl_usuario!tbl_pdf_documents_signed_by_fkey(name)
+            `)
             .eq('empresa_id', empresaId)
             .order('upload_date', { ascending: false })
 
         if (error) throw error
-        return data || []
+
+        // Mapear os dados para incluir os nomes dos usuários
+        const pdfs = (data || []).map((pdf: any) => ({
+            ...pdf,
+            uploaded_by_name: pdf.uploaded_by_user?.name,
+            signed_by_name: pdf.signed_by_user?.name
+        }))
+
+        return pdfs
     } catch (error) {
         console.error('Error listing PDFs:', error)
         throw error
