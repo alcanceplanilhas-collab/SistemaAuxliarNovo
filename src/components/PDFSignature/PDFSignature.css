@@ -217,6 +217,19 @@
 .pdf-page-container {
   margin-bottom: 1rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  max-width: 100%;
+}
+
+/* Garantir que o PDF não ultrapasse a largura da tela em mobile */
+@media (max-width: 768px) {
+  .pdf-viewer-content {
+    padding: 0.5rem;
+  }
+
+  .pdf-page-container canvas {
+    max-width: 100% !important;
+    height: auto !important;
+  }
 }
 
 .pdf-viewer-controls {

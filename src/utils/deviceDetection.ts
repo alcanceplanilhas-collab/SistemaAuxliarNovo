@@ -47,12 +47,12 @@ export function getOptimizedPDFSettings() {
         renderTextLayer: !isMobile && !limitedMemory,
         renderAnnotationLayer: !isMobile && !limitedMemory,
 
-        // Escala inicial otimizada
-        initialScale: isMobile ? 0.6 : 1.0,
+        // Escala inicial otimizada - reduzida para evitar scroll horizontal
+        initialScale: isMobile ? 0.45 : 1.0,
 
         // Limitar zoom em dispositivos de memória limitada
         maxScale: limitedMemory ? 1.5 : 2.0,
-        minScale: isMobile ? 0.4 : 0.5,
+        minScale: isMobile ? 0.3 : 0.5,
 
         // Cache de páginas
         cachePages: !limitedMemory,
