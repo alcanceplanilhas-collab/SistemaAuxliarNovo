@@ -135,6 +135,7 @@ export function PDFViewer({ pdfUrl, fileName, onClose, onSign, isSigned }: PDFVi
                     <Page
                         pageNumber={pageNumber}
                         scale={scale * pdfSettings.renderQuality}
+                        width={window.innerWidth < 768 ? window.innerWidth - 40 : undefined}
                         className="pdf-page-container"
                         renderTextLayer={pdfSettings.renderTextLayer}
                         renderAnnotationLayer={pdfSettings.renderAnnotationLayer}
