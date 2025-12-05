@@ -90,15 +90,20 @@ export async function downloadPDF(path: string): Promise<Blob> {
 }
 
 /**
- * Obtém URL pública de um PDF
+ * Obtém URL assinada (temporária) de um PDF
+ * Para buckets privados, precisamos de signed URL em vez de public URL
  */
 export async function getPDFUrl(path: string): Promise<string> {
     try {
-        const { data } = supabase.storage
+        // Cria URL assinada válida por 1 hora
+        const { data, error } = await supabase.storage
             .from('pdf-documents')
-            .getPublicUrl(path)
+            .createSignedUrl(path, 3600) // 3600 segundos = 1 hora
 
-        return data.publicUrl
+        if (error) throw error
+        if (!data || !data.signedUrl) throw new Error('Falha ao gerar URL do PDF')
+
+        return data.signedUrl
     } catch (error) {
         console.error('Error getting PDF URL:', error)
         throw error

@@ -50,15 +50,18 @@ export async function uploadSignature(
 }
 
 /**
- * Obtém URL da assinatura
+ * Obtém URL assinada da assinatura
  */
 export async function getSignatureUrl(path: string): Promise<string> {
     try {
-        const { data } = supabase.storage
+        const { data, error } = await supabase.storage
             .from('pdf-documents')
-            .getPublicUrl(path)
+            .createSignedUrl(path, 3600) // 1 hora
 
-        return data.publicUrl
+        if (error) throw error
+        if (!data || !data.signedUrl) throw new Error('Falha ao gerar URL da assinatura')
+
+        return data.signedUrl
     } catch (error) {
         console.error('Error getting signature URL:', error)
         throw error
@@ -88,19 +91,70 @@ export function validateSignature(canvas: HTMLCanvasElement): boolean {
 
 /**
  * Cria um novo PDF com a assinatura incorporada
- * Nota: Esta é uma implementação simplificada
- * Para produção, considere usar bibliotecas como pdf-lib
+ * Usa pdf-lib para adicionar a assinatura visualmente no PDF
  */
 export async function createSignedPDF(
     originalPdfBlob: Blob,
     signatureBlob: Blob
 ): Promise<Blob> {
-    // Por enquanto, vamos apenas retornar o PDF original
-    // Em uma implementação completa, você adicionaria a assinatura ao PDF
-    // usando bibliotecas como pdf-lib ou PDFKit
+    try {
+        // Importar pdf-lib dinamicamente
+        const { PDFDocument } = await import('pdf-lib')
 
-    // TODO: Implementar merge real do PDF com assinatura
-    console.log('Creating signed PDF...', { originalPdfBlob, signatureBlob })
+        // Carregar o PDF original
+        const pdfBytes = await originalPdfBlob.arrayBuffer()
+        const pdfDoc = await PDFDocument.load(pdfBytes)
 
-    return originalPdfBlob
+        // Carregar a imagem da assinatura
+        const signatureBytes = await signatureBlob.arrayBuffer()
+        const signatureImage = await pdfDoc.embedPng(signatureBytes)
+
+        // Obter a última página
+        const pages = pdfDoc.getPages()
+        const lastPage = pages[pages.length - 1]
+        const { width, height } = lastPage.getSize()
+
+        // Dimensões da assinatura (scaled down)
+        const signatureWidth = 150
+        const signatureHeight = (signatureImage.height / signatureImage.width) * signatureWidth
+
+        // Posição: canto inferior direito com margem
+        const x = width - signatureWidth - 50
+        const y = 50
+
+        // Adicionar a assinatura na última página
+        lastPage.drawImage(signatureImage, {
+            x,
+            y,
+            width: signatureWidth,
+            height: signatureHeight,
+        })
+
+        // Adicionar texto "Assinado digitalmente em [data]"
+        const now = new Date()
+        const dateStr = now.toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        })
+
+        lastPage.drawText(`Assinado digitalmente em ${dateStr}`, {
+            x: x,
+            y: y - 15,
+            size: 8,
+            opacity: 0.7
+        })
+
+        // Gerar o PDF modificado
+        const modifiedPdfBytes = await pdfDoc.save()
+
+        // Converter para Blob
+        return new Blob([modifiedPdfBytes], { type: 'application/pdf' })
+    } catch (error) {
+        console.error('Error creating signed PDF:', error)
+        throw new Error('Falha ao incorporar assinatura no PDF: ' + error)
+    }
 }
+

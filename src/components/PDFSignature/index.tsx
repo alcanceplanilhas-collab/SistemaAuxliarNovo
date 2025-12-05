@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
+import { supabase } from '../../supabase'
 import { PDFList } from './PDFList'
 import { PDFViewer } from './PDFViewer'
 import { SignatureCapture } from './SignatureCapture'
@@ -7,6 +8,7 @@ import { PDFUpload } from './PDFUpload'
 import {
     listPDFs,
     uploadPDF,
+    downloadPDF,
     getPDFUrl,
     updateSignatureStatus
 } from '../../services/pdfService'
@@ -76,21 +78,60 @@ export function PDFSignature() {
         if (!selectedPDF || !user || !company) return
 
         try {
-            // Upload da imagem de assinatura
+            console.log('🔵 Iniciando processo de assinatura...', {
+                pdfId: selectedPDF.id,
+                fileName: selectedPDF.file_name,
+                filePath: selectedPDF.file_path
+            })
+
+            // Mostrar que está processando
+            alert('⏳ Processando assinatura e incorporando no PDF...')
+
+            // 1. Baixar o PDF original
+            console.log('🔵 Baixando PDF original...')
+            const originalPdfBlob = await downloadPDF(selectedPDF.file_path)
+            console.log('✅ PDF baixado:', originalPdfBlob.size, 'bytes')
+
+            // 2. Criar PDF com assinatura incorporada
+            console.log('🔵 Incorporando assinatura no PDF...')
+            const { createSignedPDF } = await import('../../services/signatureService')
+            const signedPdfBlob = await createSignedPDF(originalPdfBlob, signatureBlob)
+            console.log('✅ PDF assinado criado:', signedPdfBlob.size, 'bytes')
+
+            // 3. Upload da imagem de assinatura (para referência)
+            console.log('🔵 Fazendo upload da imagem de assinatura...')
             const signaturePath = await uploadSignature(
                 signatureBlob,
                 company.id,
                 selectedPDF.id
             )
+            console.log('✅ Assinatura salva em:', signaturePath)
 
-            // Atualizar status no banco
+            // 4. Fazer upload do PDF assinado, substituindo o original
+            console.log('🔵 Substituindo PDF no Storage...')
+            const { error: uploadError } = await supabase.storage
+                .from('pdf-documents')
+                .update(selectedPDF.file_path, signedPdfBlob, {
+                    cacheControl: '3600',
+                    upsert: true
+                })
+
+            if (uploadError) {
+                console.error('❌ Erro no upload:', uploadError)
+                throw uploadError
+            }
+            console.log('✅ PDF substituído no Storage')
+
+            // 5. Atualizar status no banco
+            console.log('🔵 Atualizando status no banco...')
             await updateSignatureStatus(
                 selectedPDF.file_path,
                 signaturePath,
                 user.id
             )
+            console.log('✅ Status atualizado')
 
-            alert('✅ Documento assinado com sucesso!')
+            alert('✅ Documento assinado com sucesso! A assinatura foi incorporada no PDF.')
 
             // Recarregar lista de PDFs
             await loadPDFs()
@@ -100,8 +141,8 @@ export function PDFSignature() {
             setSelectedPDF(null)
             setPdfUrl('')
         } catch (error) {
-            console.error('Error signing PDF:', error)
-            alert('Erro ao assinar documento. Tente novamente.')
+            console.error('❌ ERRO ao assinar documento:', error)
+            alert('Erro ao assinar documento: ' + (error as Error).message)
         }
     }
 
@@ -145,7 +186,7 @@ export function PDFSignature() {
                     pdfUrl={pdfUrl}
                     fileName={selectedPDF.file_name}
                     onClose={handleClosePDF}
-                    onSign={selectedPDF.signed ? undefined : handleStartSigning}
+                    onSign={handleStartSigning} // Permitir assinar/reassinar sempre
                     isSigned={selectedPDF.signed}
                 />
             )}
