@@ -112,7 +112,7 @@ export async function createSignedPDF(
         // Obter a última página
         const pages = pdfDoc.getPages()
         const lastPage = pages[pages.length - 1]
-        const { width, height } = lastPage.getSize()
+        const { width } = lastPage.getSize()
 
         // Dimensões da assinatura (scaled down)
         const signatureWidth = 150
@@ -150,8 +150,8 @@ export async function createSignedPDF(
         // Gerar o PDF modificado
         const modifiedPdfBytes = await pdfDoc.save()
 
-        // Converter para Blob
-        return new Blob([modifiedPdfBytes], { type: 'application/pdf' })
+        // Converter para Blob (fix para TypeScript)
+        return new Blob([modifiedPdfBytes.buffer], { type: 'application/pdf' })
     } catch (error) {
         console.error('Error creating signed PDF:', error)
         throw new Error('Falha ao incorporar assinatura no PDF: ' + error)
