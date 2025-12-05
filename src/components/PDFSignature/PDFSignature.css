@@ -1,0 +1,547 @@
+.pdf-signature-container {
+  width: 100%;
+  height: calc(100vh - 180px);
+  display: flex;
+  flex-direction: column;
+  background: #f5f5f5;
+  padding: 1rem;
+  overflow: hidden;
+}
+
+/* PDF List Styles */
+.pdf-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.pdf-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.pdf-list-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.pdf-upload-button {
+  background: #F7B500;
+  color: #000;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.pdf-upload-button:hover {
+  background: #E5A000;
+}
+
+.pdf-search {
+  width: 100%;
+  max-width: 400px;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.pdf-filters {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.filter-button {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.filter-button.active {
+  background: #F7B500;
+  border-color: #F7B500;
+  color: #000;
+  font-weight: 600;
+}
+
+.pdf-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+.pdf-card {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: 2px solid transparent;
+  position: relative;
+}
+
+.pdf-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  border-color: #F7B500;
+}
+
+.pdf-card.signed {
+  border-left: 4px solid #4caf50;
+  background: #f1f8f4;
+}
+
+.pdf-card.unsigned {
+  border-left: 4px solid #ff9800;
+}
+
+.pdf-card-icon {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+}
+
+.pdf-card-name {
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  color: #333;
+  word-break: break-word;
+}
+
+.pdf-card-info {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 0.25rem;
+}
+
+.pdf-card-status {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 1.5rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+  color: #999;
+}
+
+.empty-state-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+/* PDF Viewer Styles */
+.pdf-viewer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.pdf-viewer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: #F7B500;
+  color: #000;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.pdf-viewer-title {
+  font-weight: 600;
+  font-size: 1.1rem;
+  flex: 1;
+  min-width: 200px;
+}
+
+.pdf-viewer-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.pdf-viewer-button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.2);
+  color: #000;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.pdf-viewer-button:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.pdf-viewer-button.sign-button {
+  background: #000;
+  color: #F7B500;
+}
+
+.pdf-viewer-button.sign-button:hover {
+  background: #222;
+}
+
+.pdf-viewer-content {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  background: #e0e0e0;
+}
+
+.pdf-page-container {
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.pdf-viewer-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: white;
+  border-top: 1px solid #ddd;
+  flex-wrap: wrap;
+}
+
+.pdf-control-button {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ddd;
+  background: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.3s;
+}
+
+.pdf-control-button:hover:not(:disabled) {
+  background: #F7B500;
+  border-color: #F7B500;
+}
+
+.pdf-control-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pdf-page-info {
+  font-weight: 600;
+  color: #333;
+}
+
+/* Signature Capture Styles */
+.signature-capture {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.signature-header {
+  padding: 1rem;
+  background: #F7B500;
+  color: #000;
+  font-weight: 600;
+  font-size: 1.2rem;
+}
+
+.signature-canvas-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: #f9f9f9;
+  position: relative;
+}
+
+.signature-canvas {
+  border: 2px dashed #ccc;
+  background: white;
+  border-radius: 8px;
+  cursor: crosshair;
+  touch-action: none;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.signature-hint {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #ccc;
+  font-size: 1.2rem;
+  pointer-events: none;
+  user-select: none;
+}
+
+.signature-actions {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f5f5f5;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.signature-button {
+  padding: 0.75rem 2rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  min-width: 120px;
+}
+
+.signature-button.clear {
+  background: #f44336;
+  color: white;
+}
+
+.signature-button.clear:hover {
+  background: #d32f2f;
+}
+
+.signature-button.cancel {
+  background: #757575;
+  color: white;
+}
+
+.signature-button.cancel:hover {
+  background: #616161;
+}
+
+.signature-button.confirm {
+  background: #4caf50;
+  color: white;
+}
+
+.signature-button.confirm:hover {
+  background: #388e3c;
+}
+
+.signature-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Upload Modal Styles */
+.upload-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.upload-modal {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 500px;
+  width: 100%;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.upload-modal-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+  color: #333;
+}
+
+.upload-dropzone {
+  border: 3px dashed #ccc;
+  border-radius: 8px;
+  padding: 3rem 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  background: #f9f9f9;
+}
+
+.upload-dropzone:hover,
+.upload-dropzone.dragover {
+  border-color: #F7B500;
+  background: #fff8e1;
+}
+
+.upload-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  color: #666;
+}
+
+.upload-text {
+  font-size: 1.1rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+}
+
+.upload-subtext {
+  font-size: 0.9rem;
+  color: #999;
+}
+
+.upload-progress {
+  margin-top: 1.5rem;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #F7B500;
+  transition: width 0.3s;
+}
+
+.progress-text {
+  font-size: 0.9rem;
+  color: #666;
+  text-align: center;
+}
+
+.upload-modal-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  justify-content: flex-end;
+}
+
+/* Loading Spinner */
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: #666;
+}
+
+.spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #F7B500;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .pdf-signature-container {
+    padding: 0.5rem;
+  }
+
+  .pdf-list-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pdf-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pdf-viewer-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pdf-viewer-content {
+    padding: 1rem;
+  }
+
+  .signature-canvas-container {
+    padding: 1rem;
+  }
+
+  .signature-actions {
+    flex-direction: column;
+  }
+
+  .signature-button {
+    width: 100%;
+  }
+
+  .upload-modal {
+    padding: 1.5rem;
+  }
+
+  .upload-dropzone {
+    padding: 2rem 1rem;
+  }
+}
+
+/* Scrollbar Styles */
+.pdf-list::-webkit-scrollbar,
+.pdf-viewer-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.pdf-list::-webkit-scrollbar-track,
+.pdf-viewer-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.pdf-list::-webkit-scrollbar-thumb,
+.pdf-viewer-content::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.pdf-list::-webkit-scrollbar-thumb:hover,
+.pdf-viewer-content::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}

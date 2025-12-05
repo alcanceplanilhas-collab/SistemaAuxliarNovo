@@ -1,15 +1,12 @@
-import { useState } from 'react'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { Login } from './components/Login'
 import { OtpScreen } from './components/OtpScreen'
 import { CompanySelection } from './components/CompanySelection'
-import { AlmoxSelect } from './components/AlmoxSelect'
-import { DeviceList } from './components/DeviceList'
+import { NavigationMenu } from './components/NavigationMenu'
 import './App.css'
 
 function AppContent() {
   const { user, company, loading, logout, isOtpVerified } = useAuth()
-  const [selectedAlmoxId, setSelectedAlmoxId] = useState<number | null>(null)
 
   if (loading) {
     return <div className="loading-screen">Carregando...</div>
@@ -41,15 +38,7 @@ function AppContent() {
       </header>
 
       <main>
-        <section className="selection-area">
-          <AlmoxSelect onSelect={setSelectedAlmoxId} />
-        </section>
-
-        {selectedAlmoxId && (
-          <section className="device-area">
-            <DeviceList almoxId={selectedAlmoxId} />
-          </section>
-        )}
+        <NavigationMenu />
       </main>
     </div>
   )

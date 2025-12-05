@@ -34,3 +34,27 @@ export interface TblParametro {
     pathlogo: string
     created_at?: string
 }
+
+export interface PDFDocument {
+    id: string
+    empresa_id: number
+    ordem_id?: string
+    file_name: string
+    file_path: string
+    file_size: number
+    upload_date: string
+    uploaded_by: number
+    signed: boolean
+    signature_url?: string
+    signature_date?: string
+    signed_by?: number
+}
+
+export interface PDFMetadata {
+    empresa_id: number
+    ordem_id?: string
+    file_name: string
+    file_path: string
+    file_size: number
+    uploaded_by: number
+}
